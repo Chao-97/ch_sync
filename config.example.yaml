@@ -1,0 +1,75 @@
+# ============================================
+# 数据库连接配置
+# ============================================
+source:
+  addr: ["*.*.*.*:9000"]
+  database: "dbname"
+  username: "username"
+  password: "password"
+
+target:
+  addr: ["*.*.*.*:9000"]
+  database: "dbname"
+  username: "username"
+  password: "password"
+
+# ============================================
+# 同步配置
+# ============================================
+sync:
+  # 全局默认配置
+  mode: "incremental"            # 同步模式：full / incremental
+  batch_size: 2000                 # 批量插入大小
+  max_concurrency: 3               # 最多同时同步的表数量
+  daily_segmentation: true         # 是否按天分段（历史追平时使用）
+  enable_compression: true         # 是否启用 LZ4 压缩
+  dial_timeout: 10                 # 连接超时（秒）
+  query_timeout: 300               # 查询超时（秒）
+
+  # 表结构同步配置
+  schema_sync:
+    enabled: true                  # 是否启用表结构同步
+    create_if_not_exists: true     # 表不存在时是否自动创建
+    sync_new_columns: true         # 是否同步新增字段
+    skip_column_check: false       # 是否跳过字段检查（快速模式）
+
+  # 断点续传
+  state_file: "/tmp/clickhouse_sync_state.json"
+  resume: true                     # 是否自动恢复
+
+# ============================================
+# 表同步配置（核心配置）
+# ============================================
+tables:
+  # 普通账单表：仅用 request_id 去重
+  - name: "tableName1"
+    mode: "incremental"
+    time_field: "end_at"           # 时间字段
+    dedupe_keys: ["request_id"]    # 去重字段
+    batch_size: 2000
+    enabled: true
+
+
+  - name: "tableName2"
+    mode: "incremental"
+    time_field: "billing_time"     # ⚠️ 不同的时间字段
+    dedupe_keys: ["billing_time", "user_id"]  # ⚠️ 组合键去重
+    enabled: true
+
+# ============================================
+# 时间范围配置（可选）
+# ============================================
+time_range:
+  # 如果不指定，增量模式会自动从目标库最大时间开始
+  # start: "2026-01-01T00:00:00+08:00"
+  # end: "2026-01-28T23:59:59+08:00"
+  auto_detect: true                # 自动检测起始时间
+  fallback_days: 30                # 如果目标库为空，默认同步最近 30 天
+
+# ============================================
+# 监控和日志
+# ============================================
+monitoring:
+  progress_bars: true              # 显示进度条
+  verbose_logging: false           # 详细日志
+  dry_run: false                   # 预览模式（不实际执行）

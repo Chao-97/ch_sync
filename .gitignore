@@ -1,0 +1,25 @@
+# 可执行文件
+ch_sync
+
+# 日志文件
+*.log
+
+# 状态文件
+*.json
+
+# IDE 配置
+.idea/
+.vscode/
+*.swp
+*.swo
+
+# 临时文件
+*.tmp
+*.bak
+
+# 测试输出
+test_output/
+
+log/*
+
+config.yaml
